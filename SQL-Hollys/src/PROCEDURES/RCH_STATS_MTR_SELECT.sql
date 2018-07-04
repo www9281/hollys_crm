@@ -1,0 +1,280 @@
+--------------------------------------------------------
+--  DDL for Procedure RCH_STATS_MTR_SELECT
+--------------------------------------------------------
+set define off;
+
+  CREATE OR REPLACE PROCEDURE "CRMDEV"."RCH_STATS_MTR_SELECT" (
+    P_RCH_NO         IN  VARCHAR2,
+    P_START_DT       IN  VARCHAR2,
+    P_END_DT         IN  VARCHAR2,
+    N_STOR_CD        IN  VARCHAR2, 
+    N_SCH_DIV        IN  VARCHAR2,
+    N_QR_NO          IN  VARCHAR2,
+    N_MOBILE         IN  VARCHAR2,
+    O_CURSOR         OUT SYS_REFCURSOR
+)IS
+BEGIN
+    -- ==========================================================================================
+    -- Author        :   박동수
+    -- Create date   :   2018-02-12
+    -- Description   :   설문조사 온라인 쿠폰 발행 현황 모니터링 결과조회
+    -- ==========================================================================================
+    
+    IF N_SCH_DIV IS NULL OR N_SCH_DIV ='' THEN
+      -- 전체조회
+      OPEN O_CURSOR FOR
+      /**SELECT
+        A.RCH_NO
+        ,A.STOR_CD
+        ,(SELECT STOR_NM FROM STORE WHERE STOR_CD = A.STOR_CD) AS STOR_NM
+        ,(SELECT FN_GET_CODE_NM('00605', TEAM_CD) FROM STORE WHERE STOR_CD = A.STOR_CD) AS TEAM_NM
+        ,(SELECT (SELECT USER_NM FROM HQ_USER WHERE USER_ID = SV_USER_ID) FROM STORE WHERE STOR_CD = A.STOR_CD) AS SV_USER_NM
+        ,A.QR_NO
+        ,TO_CHAR(A.ISSUE_DT, 'YYYY-MM-DD HH24:MI:SS') AS ISSUE_DT
+        ,TO_CHAR(B.ISSUE_DT, 'YYYY-MM-DD HH24:MI:SS') AS COUPON_ISSUE_DT
+        ,B.COUPON_CD
+        ,(SELECT DECRYPT(CUST_NM) FROM C_CUST WHERE CUST_ID = B.CUST_ID) AS CUST_NM
+        ,B.MOBILE
+        ,TO_CHAR(TO_DATE(B.USE_DT), 'YYYY-MM-DD') AS COUPON_USE_TIME
+        ,(SELECT STOR_NM FROM STORE WHERE STOR_CD = B.COUPON_STOR_CD) AS USE_STOR_NM
+        ,(SELECT ITEM_NM FROM ITEM WHERE ITEM_CD = B.ITEM_CD) AS ITEM_NM
+      FROM
+          (SELECT A.* FROM RCH_QR_ISSUE A
+          WHERE A.RCH_NO = P_RCH_NO
+            AND A.COUPON_CD IS NULL
+            AND (A.DAY_STAND_ISSUE + A.DAY_MEM_ISSUE) > 0
+            AND (N_STOR_CD IS NULL OR A.STOR_CD = N_STOR_CD)
+            AND (N_QR_NO IS NULL OR A.QR_NO = N_QR_NO)) A
+        , (SELECT 
+            A.*
+            , B.STOR_CD AS COUPON_STOR_CD
+            , B.ITEM_CD
+            , B.USE_DT
+          FROM RCH_QR_ISSUE A
+              , (SELECT T.*, ROW_NUMBER() OVER(PARTITION BY COUPON_CD ORDER BY COUPON_HIS_SEQ DESC) AS SEQ_NO 
+                 FROM PROMOTION_COUPON_HIS T
+                 WHERE T.COUPON_STATE = 'P0301') B
+          WHERE A.COUPON_CD = B.COUPON_CD
+            AND B.SEQ_NO = '1'
+            AND A.RCH_NO = P_RCH_NO
+            AND A.COUPON_CD IS NOT NULL
+            AND (A.MONTH_STAND_ISSUE + A.MONTH_MEM_ISSUE) > 0
+            AND (N_STOR_CD IS NULL OR A.STOR_CD = N_STOR_CD)
+            AND (N_QR_NO IS NULL OR A.QR_NO = N_QR_NO)
+            AND (N_MOBILE IS NULL OR B.MOBILE = N_MOBILE)) B
+      WHERE A.QR_NO = B.QR_NO (+)
+        AND A.STOR_CD = B.STOR_CD
+        AND (TO_CHAR(A.ISSUE_DT, 'YYYYMMDD') >= P_START_DT AND TO_CHAR(A.ISSUE_DT, 'YYYYMMDD') <= P_END_DT
+            OR (B.QR_NO IS NOT NULL AND TO_CHAR(A.ISSUE_DT, 'YYYYMMDD') >= P_START_DT AND TO_CHAR(A.ISSUE_DT, 'YYYYMMDD') <= P_END_DT))
+            **/
+            SELECT A.RCH_NO AS RCH_NO, A.STOR_CD AS STOR_CD , A.STOR_NM AS STOR_NM , A.TEAM_NM AS TEAM_NM
+            ,A.SV_USER_NM AS SV_USER_NM
+            ,A.QR_NO AS QR_NO
+            ,A.ISSUE_DT AS ISSUE_DT
+            ,A.COUPON_ISSUE_DT AS COUPON_ISSUE_DT
+            ,A.COUPON_CD AS COUPON_CD
+            ,B.CUST_NM AS CUST_NM
+            ,B.MOBILE
+            ,B.COUPON_USE_TIME AS COUPON_USE_TIME
+            ,B.USE_STOR_NM AS USE_STOR_NM
+            ,B.ITEM_NM AS ITEM_NM
+            FROM
+            (
+            SELECT A.RCH_NO AS RCH_NO, A.STOR_CD AS STOR_CD , A.STOR_NM AS STOR_NM , A.TEAM_NM AS TEAM_NM
+            ,A.SV_USER_NM AS SV_USER_NM
+            ,A.QR_NO AS QR_NO
+            ,TO_CHAR(A.ISSUE_DT, 'YYYY-MM-DD HH24:MI:SS') AS ISSUE_DT
+            ,TO_CHAR(B.ISSUE_DT, 'YYYY-MM-DD HH24:MI:SS') AS COUPON_ISSUE_DT
+            , B.COUPON_CD AS COUPON_CD
+            FROM
+            (SELECT 
+            A.RCH_NO AS RCH_NO, A.STOR_CD AS STOR_CD , B.STOR_NM AS STOR_NM , FN_GET_CODE_NM('00605', B.TEAM_CD) AS TEAM_NM
+            ,(SELECT USER_NM FROM HQ_USER WHERE USER_ID = B.SV_USER_ID) AS SV_USER_NM
+            ,A.QR_NO AS QR_NO, A.COUPON_CD AS COUPON_CD, A.ISSUE_DT AS ISSUE_DT
+            FROM RCH_QR_ISSUE A 
+              INNER JOIN STORE B
+              ON A.STOR_CD = B.STOR_CD
+            WHERE  A.RCH_NO = P_RCH_NO
+            AND A.COUPON_CD IS NULL
+            AND (A.DAY_STAND_ISSUE + A.DAY_MEM_ISSUE) > 0
+            AND TO_CHAR(A.ISSUE_DT, 'YYYYMMDD') >= P_START_DT
+            AND TO_CHAR(A.ISSUE_DT, 'YYYYMMDD') <= P_END_DT
+            AND (N_STOR_CD IS NULL OR A.STOR_CD = N_STOR_CD)
+            AND (N_QR_NO IS NULL OR A.QR_NO = N_QR_NO)) A
+            LEFT OUTER JOIN 
+            (SELECT
+            A.RCH_NO AS RCH_NO, A.STOR_CD AS STOR_CD , B.STOR_NM AS STOR_NM , FN_GET_CODE_NM('00605', B.TEAM_CD) AS TEAM_NM
+            ,(SELECT USER_NM FROM HQ_USER WHERE USER_ID = B.SV_USER_ID) AS SV_USER_NM
+            ,A.QR_NO AS QR_NO, A.COUPON_CD AS COUPON_CD, A.ISSUE_DT AS ISSUE_DT
+            FROM RCH_QR_ISSUE A 
+              INNER JOIN STORE B
+              ON A.STOR_CD = B.STOR_CD
+            WHERE  A.RCH_NO = P_RCH_NO
+            AND A.COUPON_CD IS NOT NULL
+            AND (A.MONTH_MEM_ISSUE + A.MONTH_STAND_ISSUE) > 0
+            AND TO_CHAR(A.ISSUE_DT, 'YYYYMMDD') >= P_START_DT
+            AND TO_CHAR(A.ISSUE_DT, 'YYYYMMDD') <= P_END_DT
+            AND (N_STOR_CD IS NULL OR A.STOR_CD = N_STOR_CD)
+            AND (N_QR_NO IS NULL OR A.QR_NO = N_QR_NO)) B
+            ON A.RCH_NO = B.RCH_NO
+            AND A.STOR_CD = B.STOR_CD
+            AND A.QR_NO =B.QR_NO
+            LEFT OUTER JOIN STORE D
+            ON A.STOR_CD = D.STOR_CD
+            AND B.STOR_CD = D.STOR_CD
+            AND A.STOR_CD = B.STOR_CD
+            WHERE A.RCH_NO = P_RCH_NO
+            AND TO_CHAR(A.ISSUE_DT, 'YYYYMMDD') >= P_START_DT
+            AND TO_CHAR(A.ISSUE_DT, 'YYYYMMDD') <= P_END_DT
+            AND (N_STOR_CD IS NULL OR A.STOR_CD = N_STOR_CD)
+            AND (N_QR_NO IS NULL OR A.QR_NO = N_QR_NO)
+            ) A
+            LEFT OUTER JOIN 
+            (
+            SELECT
+              A.RCH_NO
+              ,A.STOR_CD
+              ,(SELECT STOR_NM FROM STORE WHERE STOR_CD = A.STOR_CD) AS STOR_NM
+              ,(SELECT FN_GET_CODE_NM('00605', TEAM_CD) FROM STORE WHERE STOR_CD = A.STOR_CD) AS TEAM_NM
+              ,(SELECT (SELECT USER_NM FROM HQ_USER WHERE USER_ID = SV_USER_ID) FROM STORE WHERE STOR_CD = A.STOR_CD) AS SV_USER_NM
+              ,A.QR_NO
+              ,TO_CHAR(A.ISSUE_DT, 'YYYY-MM-DD HH24:MI:SS') AS ISSUE_DT
+              ,TO_CHAR(A.ISSUE_DT, 'YYYY-MM-DD HH24:MI:SS') AS COUPON_ISSUE_DT
+              ,B.COUPON_CD
+              ,(SELECT DECRYPT(CUST_NM) FROM C_CUST WHERE CUST_ID = B.CUST_ID) AS CUST_NM
+              ,B.MOBILE
+              ,TO_CHAR(TO_DATE(B.USE_DT), 'YYYY-MM-DD') AS COUPON_USE_TIME
+              ,(SELECT STOR_NM FROM STORE WHERE STOR_CD = B.STOR_CD) AS USE_STOR_NM
+              ,(SELECT ITEM_NM FROM ITEM WHERE ITEM_CD = B.ITEM_CD) AS ITEM_NM
+            FROM RCH_QR_ISSUE A
+                , (SELECT T.*, ROW_NUMBER() OVER(PARTITION BY COUPON_CD ORDER BY COUPON_HIS_SEQ DESC) AS SEQ_NO 
+                   FROM PROMOTION_COUPON_HIS T
+                   WHERE T.COUPON_STATE = 'P0301') B
+            WHERE A.COUPON_CD = B.COUPON_CD
+              AND A.RCH_NO = P_RCH_NO
+              AND A.COUPON_CD IS NOT NULL
+              AND B.SEQ_NO = '1'
+              AND (A.MONTH_STAND_ISSUE + A.MONTH_MEM_ISSUE) > 0
+              AND TO_CHAR(A.ISSUE_DT, 'YYYYMMDD') >= P_START_DT
+              AND TO_CHAR(A.ISSUE_DT, 'YYYYMMDD') <= P_END_DT
+              AND (N_STOR_CD IS NULL OR A.STOR_CD = N_STOR_CD)
+              AND (N_QR_NO IS NULL OR A.QR_NO = N_QR_NO)
+              AND (N_MOBILE IS NULL OR B.MOBILE = N_MOBILE)) B
+               ON A.STOR_CD = B.STOR_CD
+               AND A.QR_NO = B.QR_NO
+               AND A.RCH_NO = B.RCH_NO
+               WHERE A.RCH_NO = P_RCH_NO
+               AND (N_STOR_CD IS NULL OR A.STOR_CD = N_STOR_CD)
+              AND (N_QR_NO IS NULL OR A.QR_NO = N_QR_NO)
+              AND (N_MOBILE IS NULL OR B.MOBILE = N_MOBILE)
+        ;
+    ELSIF N_SCH_DIV = '1' THEN
+      -- 발행조회
+      OPEN O_CURSOR FOR  
+     /** SELECT
+        A.RCH_NO
+        ,A.STOR_CD
+        ,B.STOR_NM AS STOR_NM
+        , FN_GET_CODE_NM('00605', B.TEAM_CD) AS TEAM_NM
+        ,(SELECT USER_NM FROM HQ_USER WHERE USER_ID = B.SV_USER_ID) AS SV_USER_NM
+        --,(SELECT STOR_NM FROM STORE WHERE STOR_CD = A.STOR_CD) AS STOR_NM
+        --,(SELECT FN_GET_CODE_NM('00605', TEAM_CD) FROM STORE WHERE STOR_CD = A.STOR_CD) AS TEAM_NM
+        --,(SELECT (SELECT USER_NM FROM HQ_USER WHERE USER_ID = SV_USER_ID) FROM STORE WHERE STOR_CD = A.STOR_CD) AS SV_USER_NM
+        ,A.QR_NO
+        ,TO_CHAR(A.ISSUE_DT, 'YYYY-MM-DD HH24:MI:SS') AS ISSUE_DT
+      FROM RCH_QR_ISSUE A , STORE B
+      WHERE A.STOR_CD = B.STOR_CD
+        AND A.RCH_NO = P_RCH_NO
+        AND A.COUPON_CD IS NULL
+        AND (A.DAY_STAND_ISSUE + A.DAY_MEM_ISSUE) > 0
+        AND TO_CHAR(A.ISSUE_DT, 'YYYYMMDD') >= P_START_DT
+        AND TO_CHAR(A.ISSUE_DT, 'YYYYMMDD') <= P_END_DT
+        AND (N_STOR_CD IS NULL OR A.STOR_CD = N_STOR_CD)
+        AND (N_QR_NO IS NULL OR A.QR_NO = N_QR_NO);**/
+        
+         SELECT A.RCH_NO AS RCH_NO, A.STOR_CD AS STOR_CD , A.STOR_NM AS STOR_NM , A.TEAM_NM AS TEAM_NM
+            ,A.SV_USER_NM AS SV_USER_NM
+            ,A.QR_NO AS QR_NO
+            ,TO_CHAR(A.ISSUE_DT, 'YYYY-MM-DD HH24:MI:SS') AS ISSUE_DT
+            ,TO_CHAR(B.ISSUE_DT, 'YYYY-MM-DD HH24:MI:SS') AS COUPON_ISSUE_DT
+            , B.COUPON_CD AS COUPON_CD
+            FROM
+            (SELECT 
+            A.RCH_NO AS RCH_NO, A.STOR_CD AS STOR_CD , B.STOR_NM AS STOR_NM , FN_GET_CODE_NM('00605', B.TEAM_CD) AS TEAM_NM
+            ,(SELECT USER_NM FROM HQ_USER WHERE USER_ID = B.SV_USER_ID) AS SV_USER_NM
+            ,A.QR_NO AS QR_NO, A.COUPON_CD AS COUPON_CD, A.ISSUE_DT AS ISSUE_DT
+            FROM RCH_QR_ISSUE A 
+              INNER JOIN STORE B
+              ON A.STOR_CD = B.STOR_CD
+            WHERE  A.RCH_NO = P_RCH_NO
+            AND A.COUPON_CD IS NULL
+            AND (A.DAY_STAND_ISSUE + A.DAY_MEM_ISSUE) > 0
+            AND TO_CHAR(A.ISSUE_DT, 'YYYYMMDD') >= P_START_DT
+            AND TO_CHAR(A.ISSUE_DT, 'YYYYMMDD') <= P_END_DT
+            AND (N_STOR_CD IS NULL OR A.STOR_CD = N_STOR_CD)
+            AND (N_QR_NO IS NULL OR A.QR_NO = N_QR_NO)) A
+            LEFT OUTER JOIN 
+            (SELECT
+            A.RCH_NO AS RCH_NO, A.STOR_CD AS STOR_CD , B.STOR_NM AS STOR_NM , FN_GET_CODE_NM('00605', B.TEAM_CD) AS TEAM_NM
+            ,(SELECT USER_NM FROM HQ_USER WHERE USER_ID = B.SV_USER_ID) AS SV_USER_NM
+            ,A.QR_NO AS QR_NO, A.COUPON_CD AS COUPON_CD, A.ISSUE_DT AS ISSUE_DT
+            FROM RCH_QR_ISSUE A 
+              INNER JOIN STORE B
+              ON A.STOR_CD = B.STOR_CD
+            WHERE  A.RCH_NO = P_RCH_NO
+            AND A.COUPON_CD IS NOT NULL
+            AND (A.MONTH_MEM_ISSUE + A.MONTH_STAND_ISSUE) > 0
+            AND TO_CHAR(A.ISSUE_DT, 'YYYYMMDD') >= P_START_DT
+            AND TO_CHAR(A.ISSUE_DT, 'YYYYMMDD') <= P_END_DT
+            AND (N_STOR_CD IS NULL OR A.STOR_CD = N_STOR_CD)
+            AND (N_QR_NO IS NULL OR A.QR_NO = N_QR_NO)) B
+            ON A.RCH_NO = B.RCH_NO
+            AND A.STOR_CD = B.STOR_CD
+            AND A.QR_NO =B.QR_NO
+            LEFT OUTER JOIN STORE D
+            ON A.STOR_CD = D.STOR_CD
+            AND B.STOR_CD = D.STOR_CD
+            AND A.STOR_CD = B.STOR_CD
+            WHERE A.RCH_NO = P_RCH_NO
+            AND TO_CHAR(A.ISSUE_DT, 'YYYYMMDD') >= P_START_DT
+            AND TO_CHAR(A.ISSUE_DT, 'YYYYMMDD') <= P_END_DT
+            AND (N_STOR_CD IS NULL OR A.STOR_CD = N_STOR_CD)
+            AND (N_QR_NO IS NULL OR A.QR_NO = N_QR_NO)
+          ;
+    ELSE 
+      -- 사용조회
+      OPEN O_CURSOR FOR 
+      SELECT
+        A.RCH_NO
+        ,A.STOR_CD
+        ,(SELECT STOR_NM FROM STORE WHERE STOR_CD = A.STOR_CD) AS STOR_NM
+        ,(SELECT FN_GET_CODE_NM('00605', TEAM_CD) FROM STORE WHERE STOR_CD = A.STOR_CD) AS TEAM_NM
+        ,(SELECT (SELECT USER_NM FROM HQ_USER WHERE USER_ID = SV_USER_ID) FROM STORE WHERE STOR_CD = A.STOR_CD) AS SV_USER_NM
+        ,A.QR_NO
+        ,TO_CHAR(A.ISSUE_DT, 'YYYY-MM-DD HH24:MI:SS') AS ISSUE_DT
+        ,TO_CHAR(A.ISSUE_DT, 'YYYY-MM-DD HH24:MI:SS') AS COUPON_ISSUE_DT
+        ,B.COUPON_CD
+        ,(SELECT DECRYPT(CUST_NM) FROM C_CUST WHERE CUST_ID = B.CUST_ID) AS CUST_NM
+        ,B.MOBILE
+        ,TO_CHAR(TO_DATE(B.USE_DT), 'YYYY-MM-DD') AS COUPON_USE_TIME
+        ,(SELECT STOR_NM FROM STORE WHERE STOR_CD = B.STOR_CD) AS USE_STOR_NM
+        ,(SELECT ITEM_NM FROM ITEM WHERE ITEM_CD = B.ITEM_CD) AS ITEM_NM
+      FROM RCH_QR_ISSUE A
+          , (SELECT T.*, ROW_NUMBER() OVER(PARTITION BY COUPON_CD ORDER BY COUPON_HIS_SEQ DESC) AS SEQ_NO 
+             FROM PROMOTION_COUPON_HIS T
+             WHERE T.COUPON_STATE = 'P0301') B
+      WHERE A.COUPON_CD = B.COUPON_CD
+        AND A.RCH_NO = P_RCH_NO
+        AND A.COUPON_CD IS NOT NULL
+        AND B.SEQ_NO = '1'
+        AND (A.MONTH_STAND_ISSUE + A.MONTH_MEM_ISSUE) > 0
+        AND TO_CHAR(A.ISSUE_DT, 'YYYYMMDD') >= P_START_DT
+        AND TO_CHAR(A.ISSUE_DT, 'YYYYMMDD') <= P_END_DT
+        AND (N_STOR_CD IS NULL OR A.STOR_CD = N_STOR_CD)
+        AND (N_QR_NO IS NULL OR A.QR_NO = N_QR_NO)
+        AND (N_MOBILE IS NULL OR B.MOBILE = N_MOBILE)
+      ;
+    END IF;
+END RCH_STATS_MTR_SELECT;
+
+/

@@ -1,0 +1,383 @@
+--------------------------------------------------------
+--  DDL for Procedure BATCH_TRANS_ITEM_DATA
+--------------------------------------------------------
+set define off;
+
+  CREATE OR REPLACE PROCEDURE "CRMDEV"."BATCH_TRANS_ITEM_DATA" 
+IS 
+BEGIN 
+    -- ==========================================================================================
+    -- Author        :   박동수
+    -- Create date   :   2018-02-22
+    -- Description   :   POS DB의 ITEM, ITEM_L_CLASS, ITEM_M_CLASS, ITEM_S_CLASS, ITEM_D_CLASS
+    -- ==========================================================================================
+    ---------------------------------------------- ITEM ----------------------------------------------
+    BEGIN
+      MERGE INTO ITEM A
+      USING (SELECT * FROM ITEM@HPOSDB WHERE ORD_SALE_DIV IN ('2', '3')) B
+      ON (A.COMP_CD = B.COMP_CD AND A.ITEM_CD = B.ITEM_CD)
+      WHEN NOT MATCHED THEN
+        INSERT (
+          COMP_CD,BRAND_CD,ITEM_CD,REP_ITEM_CD,ITEM_NM,ITEM_POS_NM,ITEM_KDS_NM,L_CLASS_CD,M_CLASS_CD,S_CLASS_CD,D_CLASS_CD,ITEM_DIV,ORD_SALE_DIV,STOCK_DIV,STANDARD
+          ,CAPACITY,COUNTRY_CD,SALE_PRC,SALE_VAT_YN,SALE_VAT_RULE,SALE_VAT_IN_RATE,SALE_VAT_OUT_RATE,SALE_PRC_CTRL,SALE_START_DT,SALE_CLOSE_DT,SET_DIV,EXT_YN,AUTO_POPUP_YN
+          ,EXT_COMMENT,OPEN_ITEM_YN,DC_YN,COST,COST_VAT_YN,COST_VAT_RULE,COST_VAT_RATE,ORD_START_DT,ORD_CLOSE_DT,VENDOR_CD,LEAD_TIME,MIN_ORD_QTY,MAX_ORD_QTY,ORD_MNG_DIV
+          ,RJT_YN,RECIPE_DIV,YIELD_RATE,PROD_QTY,ORD_UNIT,ORD_UNIT_QTY,SALE_UNIT,SALE_UNIT_QTY,STOCK_UNIT,REUSE_YN,DO_YN,DO_UNIT,WEIGHT_UNIT,SAV_MLG_YN,POINT_YN,ERP_ITEM_CD
+          ,ASIS_ITEM_CD,SEASON_DIV,CUST_STD_CNT,STOCK_PERIOD,SERVICE_ITEM_YN,ORD_B_CNT,ALERT_ORD_QTY,HOLLYS_CON_YN,BEVERAGE_DIV,BEVERAGE_ATT,ERP_TAX_FG,USE_YN,INST_DT,INST_USER,UPD_DT,UPD_USER
+        ) VALUES (
+          B.COMP_CD,B.BRAND_CD,B.ITEM_CD,B.REP_ITEM_CD,B.ITEM_NM,B.ITEM_POS_NM,B.ITEM_KDS_NM,B.L_CLASS_CD,B.M_CLASS_CD,B.S_CLASS_CD,B.D_CLASS_CD,B.ITEM_DIV,B.ORD_SALE_DIV
+          ,B.STOCK_DIV,B.STANDARD,B.CAPACITY,B.COUNTRY_CD,B.SALE_PRC,B.SALE_VAT_YN,B.SALE_VAT_RULE,B.SALE_VAT_IN_RATE,B.SALE_VAT_OUT_RATE,B.SALE_PRC_CTRL,B.SALE_START_DT
+          ,B.SALE_CLOSE_DT,B.SET_DIV,B.EXT_YN,B.AUTO_POPUP_YN,B.EXT_COMMENT,B.OPEN_ITEM_YN,B.DC_YN,B.COST,B.COST_VAT_YN,B.COST_VAT_RULE,B.COST_VAT_RATE,B.ORD_START_DT,B.ORD_CLOSE_DT
+          ,B.VENDOR_CD,B.LEAD_TIME,B.MIN_ORD_QTY,B.MAX_ORD_QTY,B.ORD_MNG_DIV,B.RJT_YN,B.RECIPE_DIV,B.YIELD_RATE,B.PROD_QTY,B.ORD_UNIT,B.ORD_UNIT_QTY,B.SALE_UNIT,B.SALE_UNIT_QTY
+          ,B.STOCK_UNIT,B.REUSE_YN,B.DO_YN,B.DO_UNIT,B.WEIGHT_UNIT,B.SAV_MLG_YN,B.POINT_YN,B.ERP_ITEM_CD,B.ASIS_ITEM_CD,B.SEASON_DIV,B.CUST_STD_CNT,B.STOCK_PERIOD,B.SERVICE_ITEM_YN
+          ,B.ORD_B_CNT,B.ALERT_ORD_QTY,B.HOLLYS_CON_YN,B.BEVERAGE_DIV,B.BEVERAGE_ATT,B.ERP_TAX_FG,B.USE_YN,B.INST_DT,B.INST_USER,B.UPD_DT,B.UPD_USER
+        )
+      WHEN MATCHED THEN
+        UPDATE SET
+          BRAND_CD = B.BRAND_CD,REP_ITEM_CD = B.REP_ITEM_CD,ITEM_NM = B.ITEM_NM,ITEM_POS_NM = B.ITEM_POS_NM,ITEM_KDS_NM = B.ITEM_KDS_NM,L_CLASS_CD = B.L_CLASS_CD
+          ,M_CLASS_CD = B.M_CLASS_CD,S_CLASS_CD = B.S_CLASS_CD,D_CLASS_CD = B.D_CLASS_CD,ITEM_DIV = B.ITEM_DIV,ORD_SALE_DIV = B.ORD_SALE_DIV,STOCK_DIV = B.STOCK_DIV
+          ,STANDARD = B.STANDARD,CAPACITY = B.CAPACITY,COUNTRY_CD = B.COUNTRY_CD,SALE_PRC = B.SALE_PRC,SALE_VAT_YN = B.SALE_VAT_YN,SALE_VAT_RULE = B.SALE_VAT_RULE
+          ,SALE_VAT_IN_RATE = B.SALE_VAT_IN_RATE,SALE_VAT_OUT_RATE = B.SALE_VAT_OUT_RATE,SALE_PRC_CTRL = B.SALE_PRC_CTRL,SALE_START_DT = B.SALE_START_DT
+          ,SALE_CLOSE_DT = B.SALE_CLOSE_DT,SET_DIV = B.SET_DIV,EXT_YN = B.EXT_YN,AUTO_POPUP_YN = B.AUTO_POPUP_YN,EXT_COMMENT = B.EXT_COMMENT,OPEN_ITEM_YN = B.OPEN_ITEM_YN
+          ,DC_YN = B.DC_YN,COST = B.COST,COST_VAT_YN = B.COST_VAT_YN,COST_VAT_RULE = B.COST_VAT_RULE,COST_VAT_RATE = B.COST_VAT_RATE,ORD_START_DT = B.ORD_START_DT
+          ,ORD_CLOSE_DT = B.ORD_CLOSE_DT,VENDOR_CD = B.VENDOR_CD,LEAD_TIME = B.LEAD_TIME,MIN_ORD_QTY = B.MIN_ORD_QTY,MAX_ORD_QTY = B.MAX_ORD_QTY,ORD_MNG_DIV = B.ORD_MNG_DIV
+          ,RJT_YN = B.RJT_YN,RECIPE_DIV = B.RECIPE_DIV,YIELD_RATE = B.YIELD_RATE,PROD_QTY = B.PROD_QTY,ORD_UNIT = B.ORD_UNIT,ORD_UNIT_QTY = B.ORD_UNIT_QTY
+          ,SALE_UNIT = B.SALE_UNIT,SALE_UNIT_QTY = B.SALE_UNIT_QTY,STOCK_UNIT = B.STOCK_UNIT,REUSE_YN = B.REUSE_YN,DO_YN = B.DO_YN,DO_UNIT = B.DO_UNIT,WEIGHT_UNIT = B.WEIGHT_UNIT
+          ,SAV_MLG_YN = B.SAV_MLG_YN,POINT_YN = B.POINT_YN,ERP_ITEM_CD = B.ERP_ITEM_CD,ASIS_ITEM_CD = B.ASIS_ITEM_CD,SEASON_DIV = B.SEASON_DIV,CUST_STD_CNT = B.CUST_STD_CNT
+          ,STOCK_PERIOD = B.STOCK_PERIOD,SERVICE_ITEM_YN = B.SERVICE_ITEM_YN,ORD_B_CNT = B.ORD_B_CNT,ALERT_ORD_QTY = B.ALERT_ORD_QTY,HOLLYS_CON_YN = B.HOLLYS_CON_YN
+          ,BEVERAGE_DIV = B.BEVERAGE_DIV,BEVERAGE_ATT = B.BEVERAGE_ATT,ERP_TAX_FG = B.ERP_TAX_FG,USE_YN = B.USE_YN,INST_DT = B.INST_DT,INST_USER = B.INST_USER
+          ,UPD_DT = B.UPD_DT,UPD_USER = B.UPD_USER
+      ;
+    END;
+    
+    ---------------------------------------------- ITEM_L_CLASS ----------------------------------------------
+    BEGIN
+      MERGE INTO ITEM_L_CLASS A
+      USING ITEM_L_CLASS@HPOSDB B
+      ON (A.COMP_CD = B.COMP_CD AND A.ORG_CLASS_CD = B.ORG_CLASS_CD AND A.L_CLASS_CD = B.L_CLASS_CD)
+      WHEN NOT MATCHED THEN
+        INSERT (
+          COMP_CD,ORG_CLASS_CD,L_CLASS_CD,L_CLASS_NM,SORT_ORDER,USE_YN,INST_DT,INST_USER,UPD_DT,UPD_USER
+        ) VALUES (
+          B.COMP_CD,B.ORG_CLASS_CD,B.L_CLASS_CD,B.L_CLASS_NM,B.SORT_ORDER,B.USE_YN,B.INST_DT,B.INST_USER,B.UPD_DT,B.UPD_USER
+        )
+      WHEN MATCHED THEN
+        UPDATE SET
+          L_CLASS_NM = B.L_CLASS_NM
+          ,SORT_ORDER = B.SORT_ORDER
+          ,USE_YN = B.USE_YN
+          ,INST_DT = B.INST_DT
+          ,INST_USER = B.INST_USER
+          ,UPD_DT = B.UPD_DT
+          ,UPD_USER = B.UPD_USER
+      ;
+    END;
+        
+    ---------------------------------------------- ITEM_M_CLASS ----------------------------------------------
+    BEGIN
+      MERGE INTO ITEM_M_CLASS A
+      USING ITEM_M_CLASS@HPOSDB B
+      ON (A.COMP_CD = B.COMP_CD AND A.ORG_CLASS_CD = B.ORG_CLASS_CD AND A.L_CLASS_CD = B.L_CLASS_CD AND A.M_CLASS_CD = B.M_CLASS_CD)
+      WHEN NOT MATCHED THEN
+        INSERT (
+          COMP_CD,ORG_CLASS_CD,L_CLASS_CD,M_CLASS_CD,M_CLASS_NM,SORT_ORDER,USE_YN,INST_DT,INST_USER,UPD_DT,UPD_USER
+        ) VALUES (
+          B.COMP_CD,B.ORG_CLASS_CD,B.L_CLASS_CD,B.M_CLASS_CD,B.M_CLASS_NM,B.SORT_ORDER,B.USE_YN,B.INST_DT,B.INST_USER,B.UPD_DT,B.UPD_USER
+        )
+      WHEN MATCHED THEN
+        UPDATE SET
+          M_CLASS_NM = B.M_CLASS_NM
+          ,SORT_ORDER = B.SORT_ORDER
+          ,USE_YN = B.USE_YN
+          ,INST_DT = B.INST_DT
+          ,INST_USER = B.INST_USER
+          ,UPD_DT = B.UPD_DT
+          ,UPD_USER = B.UPD_USER
+      ;
+    END;
+    
+    
+    ---------------------------------------------- ITEM_S_CLASS ----------------------------------------------
+    BEGIN
+      MERGE INTO ITEM_S_CLASS A
+      USING ITEM_S_CLASS@HPOSDB B
+      ON (A.COMP_CD = B.COMP_CD AND A.ORG_CLASS_CD = B.ORG_CLASS_CD AND A.L_CLASS_CD = B.L_CLASS_CD AND A.M_CLASS_CD = B.M_CLASS_CD AND A.S_CLASS_CD = B.S_CLASS_CD)
+      WHEN NOT MATCHED THEN
+        INSERT (
+          COMP_CD,ORG_CLASS_CD,L_CLASS_CD,M_CLASS_CD,S_CLASS_CD,S_CLASS_NM,SORT_ORDER,USE_YN,INST_DT,INST_USER,UPD_DT,UPD_USER
+        ) VALUES (
+          B.COMP_CD,B.ORG_CLASS_CD,B.L_CLASS_CD,B.M_CLASS_CD,B.S_CLASS_CD,B.S_CLASS_NM,B.SORT_ORDER,B.USE_YN,B.INST_DT,B.INST_USER,B.UPD_DT,B.UPD_USER
+        )
+      WHEN MATCHED THEN
+        UPDATE SET
+          S_CLASS_NM = B.S_CLASS_NM
+          ,SORT_ORDER = B.SORT_ORDER
+          ,USE_YN = B.USE_YN
+          ,INST_DT = B.INST_DT
+          ,INST_USER = B.INST_USER
+          ,UPD_DT = B.UPD_DT
+          ,UPD_USER = B.UPD_USER
+      ;
+    END;
+    
+    ---------------------------------------------- ITEM_D_CLASS ----------------------------------------------
+    BEGIN
+      MERGE INTO ITEM_D_CLASS A
+      USING ITEM_D_CLASS@HPOSDB B
+      ON (A.COMP_CD = B.COMP_CD AND A.ORG_CLASS_CD = B.ORG_CLASS_CD AND A.L_CLASS_CD = B.L_CLASS_CD AND A.M_CLASS_CD = B.M_CLASS_CD AND A.S_CLASS_CD = B.S_CLASS_CD AND A.D_CLASS_CD = B.D_CLASS_CD)
+      WHEN NOT MATCHED THEN
+        INSERT (
+          COMP_CD,ORG_CLASS_CD,L_CLASS_CD,M_CLASS_CD,S_CLASS_CD,D_CLASS_CD,D_CLASS_NM,SORT_ORDER,USE_YN,INST_DT,INST_USER,UPD_DT,UPD_USER
+        ) VALUES (
+          B.COMP_CD,B.ORG_CLASS_CD,B.L_CLASS_CD,B.M_CLASS_CD,B.S_CLASS_CD,B.D_CLASS_CD,B.D_CLASS_NM,B.SORT_ORDER,B.USE_YN,B.INST_DT,B.INST_USER,B.UPD_DT,B.UPD_USER
+        )
+      WHEN MATCHED THEN
+        UPDATE SET
+          D_CLASS_NM = B.D_CLASS_NM
+          ,SORT_ORDER = B.SORT_ORDER
+          ,USE_YN = B.USE_YN
+          ,INST_DT = B.INST_DT
+          ,INST_USER = B.INST_USER
+          ,UPD_DT = B.UPD_DT
+          ,UPD_USER = B.UPD_USER
+      ;
+    END;
+    
+    BEGIN
+      MERGE INTO ITEM_CHAIN A
+      USING ITEM_CHAIN@HPOSDB B
+      ON (A.COMP_CD = B.COMP_CD
+          AND A.BRAND_CD = B.BRAND_CD
+          AND A.STOR_TP = B.STOR_TP
+          AND A.ITEM_CD = B.ITEM_CD)
+      WHEN NOT MATCHED THEN
+        INSERT (
+          COMP_CD
+          ,BRAND_CD
+          ,STOR_TP
+          ,ITEM_CD
+          ,REP_ITEM_CD
+          ,ITEM_NM
+          ,ITEM_POS_NM
+          ,ITEM_KDS_NM
+          ,L_CLASS_CD
+          ,M_CLASS_CD
+          ,S_CLASS_CD
+          ,D_CLASS_CD
+          ,ITEM_DIV
+          ,ORD_SALE_DIV
+          ,STOCK_DIV
+          ,STANDARD
+          ,CAPACITY
+          ,COUNTRY_CD
+          ,SALE_PRC
+          ,SALE_VAT_YN
+          ,SALE_VAT_RULE
+          ,SALE_VAT_IN_RATE
+          ,SALE_VAT_OUT_RATE
+          ,SALE_PRC_CTRL
+          ,SALE_START_DT
+          ,SALE_CLOSE_DT
+          ,SET_DIV
+          ,EXT_YN
+          ,AUTO_POPUP_YN
+          ,EXT_COMMENT
+          ,OPEN_ITEM_YN
+          ,DC_YN
+          ,COST
+          ,COST_VAT_YN
+          ,COST_VAT_RULE
+          ,COST_VAT_RATE
+          ,ORD_START_DT
+          ,ORD_CLOSE_DT
+          ,VENDOR_CD
+          ,LEAD_TIME
+          ,MIN_ORD_QTY
+          ,MAX_ORD_QTY
+          ,ORD_MNG_DIV
+          ,RJT_YN
+          ,RECIPE_DIV
+          ,YIELD_RATE
+          ,PROD_QTY
+          ,ORD_UNIT
+          ,ORD_UNIT_QTY
+          ,SALE_UNIT
+          ,SALE_UNIT_QTY
+          ,STOCK_UNIT
+          ,REUSE_YN
+          ,DO_YN
+          ,DO_UNIT
+          ,WEIGHT_UNIT
+          ,SAV_MLG_YN
+          ,POINT_YN
+          ,ERP_ITEM_CD
+          ,ASIS_ITEM_CD
+          ,SEASON_DIV
+          ,CUST_STD_CNT
+          ,STOCK_PERIOD
+          ,SERVICE_ITEM_YN
+          ,ORD_B_CNT
+          ,ALERT_ORD_QTY
+          ,HOLLYS_CON_YN
+          ,BEVERAGE_DIV
+          ,BEVERAGE_ATT
+          ,ERP_TAX_FG
+          ,USE_YN
+          ,INST_DT
+          ,INST_USER
+          ,UPD_DT
+          ,UPD_USER
+        ) VALUES (
+          B.COMP_CD
+          ,B.BRAND_CD
+          ,B.STOR_TP
+          ,B.ITEM_CD
+          ,B.REP_ITEM_CD
+          ,B.ITEM_NM
+          ,B.ITEM_POS_NM
+          ,B.ITEM_KDS_NM
+          ,B.L_CLASS_CD
+          ,B.M_CLASS_CD
+          ,B.S_CLASS_CD
+          ,B.D_CLASS_CD
+          ,B.ITEM_DIV
+          ,B.ORD_SALE_DIV
+          ,B.STOCK_DIV
+          ,B.STANDARD
+          ,B.CAPACITY
+          ,B.COUNTRY_CD
+          ,B.SALE_PRC
+          ,B.SALE_VAT_YN
+          ,B.SALE_VAT_RULE
+          ,B.SALE_VAT_IN_RATE
+          ,B.SALE_VAT_OUT_RATE
+          ,B.SALE_PRC_CTRL
+          ,B.SALE_START_DT
+          ,B.SALE_CLOSE_DT
+          ,B.SET_DIV
+          ,B.EXT_YN
+          ,B.AUTO_POPUP_YN
+          ,B.EXT_COMMENT
+          ,B.OPEN_ITEM_YN
+          ,B.DC_YN
+          ,B.COST
+          ,B.COST_VAT_YN
+          ,B.COST_VAT_RULE
+          ,B.COST_VAT_RATE
+          ,B.ORD_START_DT
+          ,B.ORD_CLOSE_DT
+          ,B.VENDOR_CD
+          ,B.LEAD_TIME
+          ,B.MIN_ORD_QTY
+          ,B.MAX_ORD_QTY
+          ,B.ORD_MNG_DIV
+          ,B.RJT_YN
+          ,B.RECIPE_DIV
+          ,B.YIELD_RATE
+          ,B.PROD_QTY
+          ,B.ORD_UNIT
+          ,B.ORD_UNIT_QTY
+          ,B.SALE_UNIT
+          ,B.SALE_UNIT_QTY
+          ,B.STOCK_UNIT
+          ,B.REUSE_YN
+          ,B.DO_YN
+          ,B.DO_UNIT
+          ,B.WEIGHT_UNIT
+          ,B.SAV_MLG_YN
+          ,B.POINT_YN
+          ,B.ERP_ITEM_CD
+          ,B.ASIS_ITEM_CD
+          ,B.SEASON_DIV
+          ,B.CUST_STD_CNT
+          ,B.STOCK_PERIOD
+          ,B.SERVICE_ITEM_YN
+          ,B.ORD_B_CNT
+          ,B.ALERT_ORD_QTY
+          ,B.HOLLYS_CON_YN
+          ,B.BEVERAGE_DIV
+          ,B.BEVERAGE_ATT
+          ,B.ERP_TAX_FG
+          ,B.USE_YN
+          ,B.INST_DT
+          ,B.INST_USER
+          ,B.UPD_DT
+          ,B.UPD_USER        
+        )
+      WHEN MATCHED THEN
+        UPDATE SET
+          REP_ITEM_CD = B.REP_ITEM_CD
+          ,ITEM_NM = B.ITEM_NM
+          ,ITEM_POS_NM = B.ITEM_POS_NM
+          ,ITEM_KDS_NM = B.ITEM_KDS_NM
+          ,L_CLASS_CD = B.L_CLASS_CD
+          ,M_CLASS_CD = B.M_CLASS_CD
+          ,S_CLASS_CD = B.S_CLASS_CD
+          ,D_CLASS_CD = B.D_CLASS_CD
+          ,ITEM_DIV = B.ITEM_DIV
+          ,ORD_SALE_DIV = B.ORD_SALE_DIV
+          ,STOCK_DIV = B.STOCK_DIV
+          ,STANDARD = B.STANDARD
+          ,CAPACITY = B.CAPACITY
+          ,COUNTRY_CD = B.COUNTRY_CD
+          ,SALE_PRC = B.SALE_PRC
+          ,SALE_VAT_YN = B.SALE_VAT_YN
+          ,SALE_VAT_RULE = B.SALE_VAT_RULE
+          ,SALE_VAT_IN_RATE = B.SALE_VAT_IN_RATE
+          ,SALE_VAT_OUT_RATE = B.SALE_VAT_OUT_RATE
+          ,SALE_PRC_CTRL = B.SALE_PRC_CTRL
+          ,SALE_START_DT = B.SALE_START_DT
+          ,SALE_CLOSE_DT = B.SALE_CLOSE_DT
+          ,SET_DIV = B.SET_DIV
+          ,EXT_YN = B.EXT_YN
+          ,AUTO_POPUP_YN = B.AUTO_POPUP_YN
+          ,EXT_COMMENT = B.EXT_COMMENT
+          ,OPEN_ITEM_YN = B.OPEN_ITEM_YN
+          ,DC_YN = B.DC_YN
+          ,COST = B.COST
+          ,COST_VAT_YN = B.COST_VAT_YN
+          ,COST_VAT_RULE = B.COST_VAT_RULE
+          ,COST_VAT_RATE = B.COST_VAT_RATE
+          ,ORD_START_DT = B.ORD_START_DT
+          ,ORD_CLOSE_DT = B.ORD_CLOSE_DT
+          ,VENDOR_CD = B.VENDOR_CD
+          ,LEAD_TIME = B.LEAD_TIME
+          ,MIN_ORD_QTY = B.MIN_ORD_QTY
+          ,MAX_ORD_QTY = B.MAX_ORD_QTY
+          ,ORD_MNG_DIV = B.ORD_MNG_DIV
+          ,RJT_YN = B.RJT_YN
+          ,RECIPE_DIV = B.RECIPE_DIV
+          ,YIELD_RATE = B.YIELD_RATE
+          ,PROD_QTY = B.PROD_QTY
+          ,ORD_UNIT = B.ORD_UNIT
+          ,ORD_UNIT_QTY = B.ORD_UNIT_QTY
+          ,SALE_UNIT = B.SALE_UNIT
+          ,SALE_UNIT_QTY = B.SALE_UNIT_QTY
+          ,STOCK_UNIT = B.STOCK_UNIT
+          ,REUSE_YN = B.REUSE_YN
+          ,DO_YN = B.DO_YN
+          ,DO_UNIT = B.DO_UNIT
+          ,WEIGHT_UNIT = B.WEIGHT_UNIT
+          ,SAV_MLG_YN = B.SAV_MLG_YN
+          ,POINT_YN = B.POINT_YN
+          ,ERP_ITEM_CD = B.ERP_ITEM_CD
+          ,ASIS_ITEM_CD = B.ASIS_ITEM_CD
+          ,SEASON_DIV = B.SEASON_DIV
+          ,CUST_STD_CNT = B.CUST_STD_CNT
+          ,STOCK_PERIOD = B.STOCK_PERIOD
+          ,SERVICE_ITEM_YN = B.SERVICE_ITEM_YN
+          ,ORD_B_CNT = B.ORD_B_CNT
+          ,ALERT_ORD_QTY = B.ALERT_ORD_QTY
+          ,HOLLYS_CON_YN = B.HOLLYS_CON_YN
+          ,BEVERAGE_DIV = B.BEVERAGE_DIV
+          ,BEVERAGE_ATT = B.BEVERAGE_ATT
+          ,ERP_TAX_FG = B.ERP_TAX_FG
+          ,USE_YN = B.USE_YN
+          ,INST_DT = B.INST_DT
+          ,INST_USER = B.INST_USER
+          ,UPD_DT = B.UPD_DT
+          ,UPD_USER = B.UPD_USER  
+      ;
+    END;
+END BATCH_TRANS_ITEM_DATA;
+
+/

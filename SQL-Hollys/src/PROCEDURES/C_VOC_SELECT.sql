@@ -1,0 +1,78 @@
+--------------------------------------------------------
+--  DDL for Procedure C_VOC_SELECT
+--------------------------------------------------------
+set define off;
+
+  CREATE OR REPLACE PROCEDURE "CRMDEV"."C_VOC_SELECT" (
+      N_BRAND_CD        IN  VARCHAR2,
+      N_RESCV_DIV       IN  VARCHAR2,
+      N_PRCS_STATE      IN  VARCHAR2,
+      N_START_DT        IN  VARCHAR2,
+      N_END_DT          IN  VARCHAR2,
+      N_INQRY_TYPE      IN  VARCHAR2,
+      N_VOC_HIGHCATE    IN  VARCHAR2,
+      N_VOC_LOWCATE     IN  VARCHAR2,
+      N_SEARCH_DIV      IN  VARCHAR2,
+      N_SEARCH_TEXT     IN  VARCHAR2,
+      P_MY_USER_ID      IN  VARCHAR2,
+      P_LANGUAGE        IN  VARCHAR2,
+      O_CURSOR          OUT SYS_REFCURSOR
+) AS 
+BEGIN
+      OPEN O_CURSOR FOR
+      SELECT
+        A.VOC_SEQ
+        ,(SELECT BRAND_NM FROM BRAND WHERE BRAND_CD = A.BRAND_CD) AS BRAND_NM
+        ,GET_COMMON_CODE_NM('C1000', A.RECV_DIV, P_LANGUAGE) AS RECV_DIV
+        ,A.STOR_CD
+        ,STO.STOR_NM
+        ,GET_COMMON_CODE_NM('00565', STO.STOR_TP, P_LANGUAGE) AS STOR_TP
+        ,(SELECT USER_NM FROM HQ_USER WHERE USER_ID = STO.SV_USER_ID) AS SC_USER_NM
+        ,GET_COMMON_CODE_NM('C2000', A.INQRY_TYPE, P_LANGUAGE) AS INQRY_TYPE
+        ,GET_COMMON_CODE_NM('C3000', A.VOC_HIGHCATE, P_LANGUAGE) AS VOC_HIGHCATE
+        ,GET_COMMON_CODE_NM(A.VOC_HIGHCATE, A.VOC_LOWCATE, P_LANGUAGE) AS VOC_LOWCATE
+        ,SUBSTR(A.FILE_URL,INSTR(A.FILE_URL,'/',-1,1) + 1,LENGTH(A.FILE_URL)) AS FILE_URL
+        ,(SELECT 
+            (SELECT USER_NM FROM HQ_USER WHERE USER_ID = VS.INST_USER)
+          FROM C_VOC_REPLY VS WHERE VS.VOC_SEQ = A.VOC_SEQ AND VS.VOC_REPLY_SEQ = '1') AS VOC_REPLY_1
+        ,(SELECT 
+            (SELECT USER_NM FROM HQ_USER WHERE USER_ID = VS.INST_USER)
+          FROM C_VOC_REPLY VS WHERE VS.VOC_SEQ = A.VOC_SEQ AND VS.VOC_REPLY_SEQ = '2') AS VOC_REPLY_2
+        ,(SELECT
+            (SELECT USER_NM FROM HQ_USER WHERE USER_ID = VS.INST_USER)
+          FROM C_VOC_REPLY VS WHERE VS.VOC_SEQ = A.VOC_SEQ AND VS.VOC_REPLY_SEQ = '3') AS VOC_REPLY_3
+        ,TO_CHAR(A.VISIT_DT, 'YYYY-MM-DD') AS VISIT_DT
+        ,A.TITLE
+        ,A.CUST_ID
+        ,A.CUST_NM
+        ,A.CUST_WEB_ID
+        ,TO_CHAR(A.INST_DT, 'YYYY-MM-DD') AS INST_DT
+        ,(SELECT USER_NM FROM HQ_USER WHERE USER_ID = A.INST_USER) AS SC_USER_NM
+        ,GET_COMMON_CODE_NM('C4001', A.PRCS_STATE, P_LANGUAGE) AS PRCS_STATE
+        ,A.SEND_YN
+        ,A.PROC_END_DT
+      FROM C_VOC A, STORE STO
+      WHERE A.BRAND_CD = STO.BRAND_CD(+)
+        AND A.STOR_CD  = STO.STOR_CD(+)
+        AND (A.BRAND_CD = N_BRAND_CD OR (N_BRAND_CD IS NULL
+            AND EXISTS (SELECT 1 FROM HQ_USER_BRAND WHERE USER_ID = P_MY_USER_ID AND BRAND_CD = A.BRAND_CD AND USE_YN = 'Y')))
+        AND (N_RESCV_DIV IS NULL OR A.RECV_DIV = N_RESCV_DIV)
+        AND (N_PRCS_STATE IS NULL OR A.PRCS_STATE = N_PRCS_STATE)
+        AND (N_START_DT IS NULL OR TO_CHAR(A.INST_DT, 'YYYYMMDD') >= REPLACE(N_START_DT, '-', ''))
+        AND (N_END_DT IS NULL OR TO_CHAR(A.INST_DT, 'YYYYMMDD') <= REPLACE(N_END_DT, '-', ''))
+        AND (N_INQRY_TYPE IS NULL OR A.INQRY_TYPE = N_INQRY_TYPE)
+        AND (N_VOC_HIGHCATE IS NULL OR A.VOC_HIGHCATE = N_VOC_HIGHCATE)
+        AND (N_VOC_LOWCATE IS NULL OR A.VOC_LOWCATE = N_VOC_LOWCATE)
+        AND (TRIM(N_SEARCH_TEXT) IS NULL OR (
+                                                N_SEARCH_DIV = '01' AND A.TITLE LIKE '%' || N_SEARCH_TEXT || '%'
+                                                OR N_SEARCH_DIV = '02' AND A.CONTENT LIKE '%' || N_SEARCH_TEXT || '%'
+                                                OR N_SEARCH_DIV = '03' AND A.CUST_NM LIKE '%' || N_SEARCH_TEXT || '%'
+                                                OR N_SEARCH_DIV = '04' AND A.STOR_NM LIKE '%' || N_SEARCH_TEXT || '%'
+                                                OR N_SEARCH_DIV = '05' AND A.MOBILE_NO LIKE '%' || N_SEARCH_TEXT || '%'
+                                                OR N_SEARCH_DIV = '06' AND A.EMAIL LIKE '%' || N_SEARCH_TEXT || '%'
+                                             ))
+        AND A.DEL_YN = 'N'
+      ORDER BY A.VOC_SEQ DESC;
+END C_VOC_SELECT;
+
+/

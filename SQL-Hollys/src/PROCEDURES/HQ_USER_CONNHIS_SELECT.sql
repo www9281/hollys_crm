@@ -1,0 +1,49 @@
+--------------------------------------------------------
+--  DDL for Procedure HQ_USER_CONNHIS_SELECT
+--------------------------------------------------------
+set define off;
+
+  CREATE OR REPLACE PROCEDURE "CRMDEV"."HQ_USER_CONNHIS_SELECT" (
+    N_ACC_DIV     IN VARCHAR2,
+    N_CONN_DIV    IN VARCHAR2,
+    N_CONN_TEXT   IN VARCHAR2,
+    P_START_DT    IN VARCHAR2,
+    P_END_DT      IN VARCHAR2,
+    P_LANGUAGE_TP IN VARCHAR2,
+    O_CURSOR      OUT SYS_REFCURSOR
+) AS
+BEGIN
+    OPEN O_CURSOR FOR
+    SELECT
+      HIST_NO
+      ,CONN_CD
+      ,USER_NM || '(' || USER_ID || ')' AS CONN_ID
+      ,CASE WHEN CUST_NM IS NOT NULL THEN
+            CUST_NM || '(' || CUST_ID || ')'
+       ELSE ''
+       END AS VIEW_ID
+      ,CONN_DT
+      ,ROWNUM AS RNUM
+      ,CONN_IP
+    FROM ( 
+      SELECT
+        HIST_NO
+        ,GET_COMMON_CODE_NM('C7000', CONN_CD, P_LANGUAGE_TP) AS CONN_CD
+        ,(SELECT USER_NM FROM HQ_USER WHERE USER_ID = CONN_ID AND ROWNUM = 1) AS USER_NM
+        ,(SELECT USER_ID FROM HQ_USER WHERE USER_ID = CONN_ID AND ROWNUM = 1) AS USER_ID
+        ,(SELECT DECRYPT(CUST_NM) FROM C_CUST WHERE CUST_ID = VIEW_ID AND ROWNUM = 1) AS CUST_NM
+        ,(SELECT CUST_ID FROM C_CUST WHERE CUST_ID = VIEW_ID AND ROWNUM = 1) AS CUST_ID
+        ,TO_CHAR(CONN_DT, 'YYYY-MM-DD HH24:MI:SS') AS CONN_DT
+        ,CONN_IP
+      FROM HQ_USER_CONNHIS
+      WHERE (N_ACC_DIV IS NULL OR CONN_CD = N_ACC_DIV)
+        AND TO_CHAR(CONN_DT, 'YYYYMMDDHH24MI') >= P_START_DT
+        AND TO_CHAR(CONN_DT, 'YYYYMMDDHH24MI') <= P_END_DT
+    ) A
+    WHERE (N_CONN_DIV IS NULL 
+                  OR N_CONN_DIV = '01' AND A.USER_NM LIKE '%' || N_CONN_TEXT || '%' -- 접속자
+                  OR N_CONN_DIV = '02' AND A.CUST_NM LIKE '%' || N_CONN_TEXT || '%')  -- 열람정보
+    ;
+END HQ_USER_CONNHIS_SELECT;
+
+/

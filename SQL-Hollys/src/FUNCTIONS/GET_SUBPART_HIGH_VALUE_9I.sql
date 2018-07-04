@@ -1,0 +1,25 @@
+--------------------------------------------------------
+--  DDL for Function GET_SUBPART_HIGH_VALUE_9I
+--------------------------------------------------------
+
+  CREATE OR REPLACE FUNCTION "CRMDEV"."GET_SUBPART_HIGH_VALUE_9I" 
+  ( V_OWNER VARCHAR2, V_NAME VARCHAR2, V_PNAME VARCHAR2)
+RETURN VARCHAR2 IS
+     LONG_CHAR    VARCHAR2(4000);
+  BEGIN
+
+    SELECT HIGH_VALUE
+    INTO   LONG_CHAR
+    FROM   SYS.ALL_TAB_SUBPARTITIONS
+    WHERE  TABLE_OWNER        = UPPER(V_OWNER)
+    AND    TABLE_NAME         = UPPER(V_NAME) 
+    AND    SUBPARTITION_NAME  = UPPER(V_PNAME);
+
+    SELECT ' VALUES ('||LONG_CHAR||')'
+    INTO   LONG_CHAR
+    FROM   DUAL;
+
+     RETURN LONG_CHAR ;
+END;
+
+/

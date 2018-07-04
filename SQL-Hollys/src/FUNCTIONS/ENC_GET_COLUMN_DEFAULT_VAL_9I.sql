@@ -1,0 +1,24 @@
+--------------------------------------------------------
+--  DDL for Function ENC_GET_COLUMN_DEFAULT_VAL_9I
+--------------------------------------------------------
+
+  CREATE OR REPLACE FUNCTION "CRMDEV"."ENC_GET_COLUMN_DEFAULT_VAL_9I" 
+  ( V_OWNER VARCHAR2, V_NAME VARCHAR2, V_COLUMN_NAME VARCHAR2 )
+RETURN VARCHAR2 IS
+     LONG_CHAR    VARCHAR2(4000);
+  BEGIN
+       SELECT DATA_DEFAULT
+    INTO   LONG_CHAR
+    FROM   SYS.ALL_TAB_COLUMNS
+       WHERE  OWNER    = UPPER(V_OWNER)
+       AND    TABLE_NAME     = UPPER(V_NAME) 
+    AND    COLUMN_NAME = UPPER(V_COLUMN_NAME);
+
+     IF LONG_CHAR IS NOT NULL THEN
+     LONG_CHAR := ' DEFAULT ' || LONG_CHAR;
+     END IF;
+
+     RETURN TRIM (LONG_CHAR) ;
+END;
+
+/

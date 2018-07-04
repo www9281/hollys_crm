@@ -1,0 +1,34 @@
+--------------------------------------------------------
+--  DDL for Function GET_PART_TS_9I
+--------------------------------------------------------
+
+  CREATE OR REPLACE FUNCTION "CRMDEV"."GET_PART_TS_9I" 
+  (V_OWNER VARCHAR2, V_TNAME VARCHAR2, V_PART_COUNT NUMBER)
+RETURN VARCHAR2 IS
+     TBS_STRING   VARCHAR2(4000) := '';
+  BEGIN
+
+ FOR CUR_SQL IN (SELECT /*+ INDEX(X.USER$.I_USER1) */ PARTITION_POSITION, TABLESPACE_NAME
+	               FROM   SYS.ALL_TAB_PARTITIONS X
+	               WHERE  TABLE_OWNER = UPPER(V_OWNER)
+                 AND    TABLE_NAME  = UPPER(V_TNAME)
+                 ORDER BY PARTITION_POSITION
+	              ) LOOP
+
+    IF (CUR_SQL.PARTITION_POSITION = 1) 
+    THEN  TBS_STRING   := ' PARTITIONS '||V_PART_COUNT||CHR(10)||' STORE IN (';
+    END IF;
+
+    TBS_STRING   := TBS_STRING||CUR_SQL.TABLESPACE_NAME;
+
+    IF (V_PART_COUNT = CUR_SQL.PARTITION_POSITION) 
+    THEN  TBS_STRING   := TBS_STRING||')';
+    ELSE  TBS_STRING   := TBS_STRING||',';
+    END IF;  
+
+ END LOOP;
+
+ RETURN TBS_STRING;
+END;
+
+/
