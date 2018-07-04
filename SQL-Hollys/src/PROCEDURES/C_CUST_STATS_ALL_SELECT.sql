@@ -17,7 +17,7 @@ BEGIN
       V_START_DT := P_START_DT;
       V_END_DT   := P_END_DT;
       
-      -- junwon testing xxx
+      -- junwon testing 
       
 
       IF P_INFO_DIV <> '6' THEN 
