@@ -16,8 +16,10 @@ PROCEDURE        "C_CUST_STATS_ALL_SELECT" (
 BEGIN
       V_START_DT := P_START_DT;
       V_END_DT   := P_END_DT;
-       
       
+      -- junwon testing xxx
+      
+
       IF P_INFO_DIV <> '6' THEN 
         V_N_STOR_CD := NULL ;
       ELSE 
